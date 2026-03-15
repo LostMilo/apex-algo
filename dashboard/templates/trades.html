@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Trade Log — Trading Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Trade Log</div>
+    <div class="page-subtitle">History of all executed trades</div>
+</div>
+
+<!-- Summary Cards -->
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">Total Trades</div>
+        <div class="card-value">{{ trades|length }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Win Rate</div>
+        <div class="card-value {% if win_rate >= 0.5 %}positive{% else %}negative{% endif %}">
+            {{ "%.1f"|format(win_rate * 100) }}%
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-label">Total P&L</div>
+        <div class="card-value {% if total_pnl >= 0 %}positive{% else %}negative{% endif %}">
+            {% if total_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(total_pnl) }}
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-label">Avg Trade</div>
+        <div class="card-value {% if avg_pnl >= 0 %}positive{% else %}negative{% endif %}">
+            {% if avg_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(avg_pnl) }}
+        </div>
+    </div>
+</div>
+
+<!-- Trade Table -->
+<div class="table-wrapper">
+    <div class="table-header">
+        <span class="table-title">Recent Trades</span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Strategy</th>
+                <th>P&L</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trade in trades[-50:]|reverse %}
+            <tr>
+                <td style="color: var(--text-muted);">{{ trade.timestamp[:16] if trade.timestamp else '' }}</td>
+                <td style="font-weight: 600;">{{ trade.symbol }}</td>
+                <td>
+                    <span class="badge badge-{% if 'buy' in trade.side|lower %}long{% else %}short{% endif %}">
+                        {{ trade.side }}
+                    </span>
+                </td>
+                <td>{{ "%.2f"|format(trade.qty) }}</td>
+                <td>${{ "%.2f"|format(trade.price) }}</td>
+                <td style="font-family: Inter, sans-serif;">{{ trade.strategy }}</td>
+                <td class="{% if trade.get('pnl', 0) >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if trade.get('pnl') is not none %}
+                        {% if trade.pnl >= 0 %}+{% endif %}${{ "%.2f"|format(trade.pnl) }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                    No trades yet
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

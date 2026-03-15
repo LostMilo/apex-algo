@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Strategies — Trading Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Strategy Monitor</div>
+    <div class="page-subtitle">Active strategies, regime status, and current signals</div>
+</div>
+
+<!-- Regime Status -->
+<div class="section">
+    <div class="section-title">Market Regimes</div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Regime</th>
+                    <th>Active Strategies</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sym, regime in regimes.items() %}
+                <tr>
+                    <td style="font-weight: 600;">{{ sym }}</td>
+                    <td>
+                        <span class="badge badge-{{ regime|lower }}">{{ regime }}</span>
+                    </td>
+                    <td style="font-family: Inter, sans-serif;">
+                        {% if regime == 'TRENDING' %}
+                            TSMOM, Vol Trend + Dual Momentum filter
+                        {% else %}
+                            Pairs Arb + Dual Momentum filter
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Strategy Status -->
+<div class="section">
+    <div class="section-title">Strategy Status</div>
+    <div class="card-grid">
+        {% for strat in strategies %}
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                <div class="card-label" style="margin-bottom: 0;">{{ strat.name }}</div>
+                <span class="badge badge-{{ 'active' if strat.active else 'inactive' }}">
+                    {{ 'Active' if strat.active else 'Inactive' }}
+                </span>
+            </div>
+            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">
+                {{ strat.description }}
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);">
+                Regime: {{ strat.regime }} · Signals: {{ strat.signal_count }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Current Signals -->
+<div class="section">
+    <div class="section-title">Current Signals</div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Direction</th>
+                    <th>Strength</th>
+                    <th>Strategy</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for signal in signals %}
+                <tr>
+                    <td style="font-weight: 600;">{{ signal.symbol }}</td>
+                    <td>
+                        <span class="badge badge-{{ signal.direction }}">{{ signal.direction }}</span>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="flex: 1; height: 4px; background: var(--border); border-radius: 2px; max-width: 80px;">
+                                <div style="height: 100%; width: {{ signal.strength * 100 }}%; border-radius: 2px; background: {% if signal.direction == 'long' %}var(--accent-green){% else %}var(--accent-red){% endif %};"></div>
+                            </div>
+                            <span>{{ "%.0f"|format(signal.strength * 100) }}%</span>
+                        </div>
+                    </td>
+                    <td style="font-family: Inter, sans-serif;">{{ signal.strategy }}</td>
+                    <td style="color: var(--text-muted);">{{ signal.timestamp }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                        No active signals
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

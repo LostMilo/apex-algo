@@ -1,0 +1,28 @@
+# Secrets — never commit
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.pyo
+
+# Data & logs (generated at runtime)
+data/raw/
+data/logs/
+data/trading_memory.db
+data/backtest_results/
+*.csv
+*.h5
+*.parquet
+
+# Legacy (archived, not needed for deployment)
+legacy/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

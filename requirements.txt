@@ -1,0 +1,36 @@
+# ── Broker API ──
+alpaca-py>=0.13.0
+
+# ── Data & Numerics ──
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+pandas-market-calendars>=4.3.0  # NYSE holiday calendar
+
+# ── Statistical Models ──
+arch>=6.2.0                    # GARCH volatility modelling
+statsmodels>=0.14.0            # Cointegration tests (Engle-Granger, ADF)
+
+# ── Machine Learning ──
+scikit-learn>=1.3.0
+
+# ── Dashboard ──
+streamlit>=1.28.0
+plotly>=5.17.0
+
+# ── HTTP & APIs ──
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# ── NLP Sentiment ──
+vaderSentiment>=3.3.2
+
+# ── Scheduling ──
+APScheduler>=3.10.0
+schedule>=1.2.0
+
+# ── Logging ──
+loguru>=0.7.0
+
+# ── Utilities ──
+pytz>=2023.3

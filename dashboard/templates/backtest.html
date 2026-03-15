@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Backtest — Trading Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Backtest Results</div>
+    <div class="page-subtitle">Historical simulation performance</div>
+</div>
+
+{% if metrics %}
+<!-- Performance Metrics -->
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">Total Return</div>
+        <div class="card-value {% if metrics.total_return >= 0 %}positive{% else %}negative{% endif %}">
+            {{ "%.1f"|format(metrics.total_return * 100) }}%
+        </div>
+        <div class="card-change neutral">Over {{ metrics.years }} years</div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Annual Return</div>
+        <div class="card-value {% if metrics.annual_return >= 0 %}positive{% else %}negative{% endif %}">
+            {{ "%.1f"|format(metrics.annual_return * 100) }}%
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Sharpe Ratio</div>
+        <div class="card-value {% if metrics.sharpe_ratio >= 1.0 %}positive{% elif metrics.sharpe_ratio >= 0.5 %}neutral{% else %}negative{% endif %}">
+            {{ "%.2f"|format(metrics.sharpe_ratio) }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Max Drawdown</div>
+        <div class="card-value negative">
+            {{ "%.1f"|format(metrics.max_drawdown * 100) }}%
+        </div>
+    </div>
+</div>
+
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">Final Equity</div>
+        <div class="card-value">${{ "%.2f"|format(metrics.final_equity) }}</div>
+        <div class="card-change neutral">From ${{ "%.2f"|format(metrics.initial_capital) }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Annual Volatility</div>
+        <div class="card-value">{{ "%.1f"|format(metrics.annual_volatility * 100) }}%</div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Win Rate</div>
+        <div class="card-value {% if metrics.win_rate >= 0.5 %}positive{% else %}negative{% endif %}">
+            {{ "%.1f"|format(metrics.win_rate * 100) }}%
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Total Trades</div>
+        <div class="card-value">{{ metrics.total_trades }}</div>
+    </div>
+</div>
+
+<!-- Equity Curve Chart -->
+{% if equity_curve %}
+<div class="table-wrapper" style="padding: 24px;">
+    <div class="table-title" style="margin-bottom: 16px;">Equity Curve</div>
+    <canvas id="equityChart" height="300"></canvas>
+</div>
+{% endif %}
+
+{% else %}
+<div class="card" style="text-align: center; padding: 60px 20px;">
+    <div style="font-size: 48px; margin-bottom: 16px;">📈</div>
+    <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">No Backtest Results</div>
+    <div style="font-size: 13px; color: var(--text-muted);">
+        Run: <code style="background: var(--bg-secondary); padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace;">python backtest_engine.py --start 2005-01-01 --end 2026-03-14</code>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if equity_curve %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const data = {{ equity_curve | tojson }};
+    const labels = data.map(d => d.date);
+    const values = data.map(d => d.equity);
+
+    // Sample data to max 500 points for performance
+    const step = Math.max(1, Math.floor(labels.length / 500));
+    const sampledLabels = labels.filter((_, i) => i % step === 0);
+    const sampledValues = values.filter((_, i) => i % step === 0);
+
+    new Chart(document.getElementById('equityChart'), {
+        type: 'line',
+        data: {
+            labels: sampledLabels,
+            datasets: [{
+                label: 'Portfolio Equity',
+                data: sampledValues,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1a1f2e',
+                    borderColor: '#2a3042',
+                    borderWidth: 1,
+                    titleFont: { family: 'Inter' },
+                    bodyFont: { family: 'JetBrains Mono', size: 12 },
+                    callbacks: {
+                        label: ctx => `$${ctx.parsed.y.toFixed(2)}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(42, 48, 66, 0.5)' },
+                    ticks: { color: '#64748b', maxTicksLimit: 10, font: { size: 10 } }
+                },
+                y: {
+                    grid: { color: 'rgba(42, 48, 66, 0.5)' },
+                    ticks: {
+                        color: '#64748b',
+                        font: { size: 10, family: 'JetBrains Mono' },
+                        callback: v => '$' + v.toFixed(0)
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

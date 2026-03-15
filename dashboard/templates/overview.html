@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Overview — Trading Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Portfolio Overview</div>
+    <div class="page-subtitle">Real-time account status · Last updated: {{ last_updated }}</div>
+</div>
+
+<!-- KPI Cards -->
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">Equity</div>
+        <div class="card-value">${{ "%.2f"|format(account.equity) }}</div>
+        <div class="card-change {% if account.daily_pnl >= 0 %}positive{% else %}negative{% endif %}">
+            {% if account.daily_pnl >= 0 %}+{% endif %}${{ "%.2f"|format(account.daily_pnl) }} today
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Cash Available</div>
+        <div class="card-value">${{ "%.2f"|format(account.cash) }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Open Positions</div>
+        <div class="card-value">{{ positions|length }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-label">Drawdown</div>
+        <div class="card-value {% if account.drawdown > 0.05 %}negative{% else %}neutral{% endif %}">
+            {{ "%.1f"|format(account.drawdown * 100) }}%
+        </div>
+    </div>
+</div>
+
+<!-- Positions Table -->
+<div class="table-wrapper">
+    <div class="table-header">
+        <span class="table-title">Open Positions</span>
+        <span style="font-size: 12px; color: var(--text-muted);">{{ positions|length }} active</span>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Qty</th>
+                <th>Avg Entry</th>
+                <th>Current</th>
+                <th>P&L</th>
+                <th>P&L %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pos in positions %}
+            <tr>
+                <td style="font-weight: 600;">{{ pos.symbol }}</td>
+                <td><span class="badge badge-{{ pos.side }}">{{ pos.side }}</span></td>
+                <td>{{ "%.2f"|format(pos.qty) }}</td>
+                <td>${{ "%.2f"|format(pos.avg_entry) }}</td>
+                <td>${{ "%.2f"|format(pos.current_price) }}</td>
+                <td class="{% if pos.unrealized_pl >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if pos.unrealized_pl >= 0 %}+{% endif %}${{ "%.2f"|format(pos.unrealized_pl) }}
+                </td>
+                <td class="{% if pos.unrealized_plpc >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if pos.unrealized_plpc >= 0 %}+{% endif %}{{ "%.2f"|format(pos.unrealized_plpc * 100) }}%
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                    No open positions
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Account Details -->
+<div class="card-grid">
+    <div class="card">
+        <div class="card-label">Portfolio Value</div>
+        <div class="card-value">${{ "%.2f"|format(account.portfolio_value) }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Buying Power</div>
+        <div class="card-value">${{ "%.2f"|format(account.buying_power) }}</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Total Exposure</div>
+        <div class="card-value">{{ "%.1f"|format(account.exposure * 100) }}%</div>
+    </div>
+    <div class="card">
+        <div class="card-label">Total Trades</div>
+        <div class="card-value">{{ account.total_trades }}</div>
+    </div>
+</div>
+{% endblock %}
